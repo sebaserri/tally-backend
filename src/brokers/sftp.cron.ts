@@ -7,7 +7,7 @@ export class BrokersSftpCron {
 
   @Cron(CronExpression.EVERY_10_MINUTES)
   async poll() {
-    // Conecta a SFTP, lista /COI_Inbox/*.pdf, sube a S3, registra BrokerInbox
+    // Conecta a SFTP, lista /yally_Inbox/*.pdf, sube a S3, registra BrokerInbox
     // Llama flujo común (AV + OCR + crear/actualizar COI)
     this.logger.debug("SFTP poll tick");
   }

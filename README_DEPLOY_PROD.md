@@ -1,4 +1,4 @@
-# Deploy a Producción – COI API
+# Deploy a Producción – Tally API
 
 Este bundle incluye:
 - `Dockerfile` (multi-stage) con **tesseract-ocr** y **poppler-utils** para OCR.
@@ -23,7 +23,7 @@ docker compose -f docker-compose.prod.yml build
 # 3) Migraciones Prisma (primera vez)
 # Puedes ejecutar dentro de un contenedor temporal:
 docker run --rm --env-file .env.prod \
-  -v $(pwd):/app -w /app yourorg/coi-api:prod \
+  -v $(pwd):/app -w /app yourorg/tally-api:prod \
   sh -lc "npx prisma migrate deploy && node dist/main.js & sleep 1"
 
 # 4) Levantar API
@@ -32,7 +32,7 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
 
 > Sugerido: usar **buildx** para multi-arquitectura
 ```bash
-docker buildx build --platform linux/amd64 -t yourorg/coi-api:prod --push .
+docker buildx build --platform linux/amd64 -t yourorg/tally-api:prod --push .
 ```
 
 ## Salud / healthcheck

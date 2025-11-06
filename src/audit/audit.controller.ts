@@ -31,7 +31,7 @@ export class AuditController {
   @Get("logs")
   @ApiOperation({ summary: "Listar logs de auditoría (filtros + paginación)" })
   @ApiQuery({ name: "entity", required: false, example: "COI" })
-  @ApiQuery({ name: "entityId", required: false, example: "coi_123" })
+  @ApiQuery({ name: "entityId", required: false, example: "tally_123" })
   @ApiQuery({ name: "actorId", required: false, example: "u_admin" })
   @ApiQuery({ name: "action", required: false, example: "REVIEW.APPROVED" })
   @ApiQuery({
@@ -80,7 +80,7 @@ export class AuditController {
   @Get("logs/export")
   @ApiOperation({ summary: "Exportar logs de auditoría a CSV" })
   @ApiQuery({ name: "entity", required: false, example: "COI" })
-  @ApiQuery({ name: "entityId", required: false, example: "coi_123" })
+  @ApiQuery({ name: "entityId", required: false, example: "tally_123" })
   @ApiQuery({ name: "actorId", required: false, example: "u_admin" })
   @ApiQuery({ name: "action", required: false, example: "REVIEW.REJECTED" })
   @ApiQuery({

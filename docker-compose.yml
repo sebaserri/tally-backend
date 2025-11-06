@@ -2,12 +2,12 @@ version: '3.9'
 services:
   db:
     image: postgres:16
-    container_name: coi-db
+    container_name: tally-db
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: coi_mvp
+      POSTGRES_DB: tally_mvp
     ports:
       - "5432:5432"
     volumes:
@@ -15,7 +15,7 @@ services:
 
   minio:
     image: minio/minio:latest
-    container_name: coi-minio
+    container_name: tally-minio
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: minioadmin

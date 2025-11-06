@@ -89,7 +89,7 @@ export class AuthController {
     @Headers("user-agent") ua: string,
     @Ip() ip: string
   ) {
-    const rt = req.cookies?.["coi_rt"];
+    const rt = req.cookies?.["tally_rt"];
     if (!rt) throw new Error("Missing refresh");
     const {
       at,
@@ -110,7 +110,7 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response
   ) {
-    const rt = req.cookies?.["coi_rt"];
+    const rt = req.cookies?.["tally_rt"];
     if (rt) await this.auth.logout(user.id, rt);
     clearAuthCookies(res);
     // limpiar csrf (no obligatorio)

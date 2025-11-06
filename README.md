@@ -1,4 +1,4 @@
-# COI API — Guía de desarrollo y despliegue
+# Tally API — Guía de desarrollo y despliegue
 
 API NestJS para gestionar certificados de seguro (COI), con OCR opcional y notificaciones vía SMS/email.
 
@@ -26,8 +26,8 @@ npm run start:dev               # http://localhost:4000
 - `Dockerfile.ocr` → imagen con `tesseract-ocr` + `poppler-utils` para procesar PDFs escaneados.
 
 ```bash
-docker build -f Dockerfile.slim -t coi-backend:slim .
-docker build -f Dockerfile.ocr  -t coi-backend:ocr  .
+docker build -f Dockerfile.slim -t tally-backend:slim .
+docker build -f Dockerfile.ocr  -t tally-backend:ocr  .
 ```
 
 ### Despliegue (compose prod)
@@ -38,7 +38,7 @@ docker compose -f docker-compose.prod.yml build
 
 # Migraciones
 docker run --rm --env-file .env.prod \
-  -v "$(pwd)":/app -w /app yourorg/coi-api:prod \
+  -v "$(pwd)":/app -w /app yourorg/tally-api:prod \
   sh -lc "npx prisma migrate deploy"
 
 # API
@@ -66,7 +66,7 @@ docker compose up -d
 
 - Postgres: `localhost:5432` (`postgres` / `postgres`)
 - MinIO: `http://localhost:9001` (`minioadmin` / `minioadmin`)
-- Crea el bucket `coi-uploads` la primera vez.
+- Crea el bucket `tally-uploads` la primera vez.
 
 ### 2. API NestJS
 
@@ -146,7 +146,7 @@ TOKEN=$(curl -sX POST http://localhost:4000/auth/login \
   -d '{"email":"admin@example.com","password":"password123"}' \
   | jq -r .access_token)
 
-curl -sX POST http://localhost:4000/coi/requests \
+curl -sX POST http://localhost:4000/tally/requests \
  -H "Authorization: Bearer $TOKEN" \
  -H 'Content-Type: application/json' \
  -d '{"buildingId":"<BID>","vendorId":"<VID>","ttlHours":168}'

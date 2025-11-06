@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile.ocr   # o Dockerfile.slim
       args:
         - NODE_VERSION=20
-    image: yourorg/coi-api:prod
+    image: yourorg/tally-api:prod
     restart: unless-stopped
     env_file:
       - .env.prod

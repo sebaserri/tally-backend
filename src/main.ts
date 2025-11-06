@@ -45,18 +45,20 @@ async function bootstrap() {
     exposedHeaders: [],
   });
 
+  app.setGlobalPrefix("api");
+
   const prismaService = app.get(PrismaService);
   await prismaService.enableShutdownHooks(app);
 
   const config = new DocumentBuilder()
-    .setTitle("COI MVP API")
+    .setTitle("Tally MVP API")
     .setDescription("API para gestión de COIs (ACORD 25)")
     .setVersion("0.1.0")
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup("docs", app, document, {
-    jsonDocumentUrl: "docs-json",
+  SwaggerModule.setup("api/docs", app, document, {
+    jsonDocumentUrl: "api/docs-json",
   });
 
   await app.listen(process.env.PORT || 4000);
