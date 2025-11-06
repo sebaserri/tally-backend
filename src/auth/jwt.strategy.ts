@@ -1,6 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
+import { Request } from "express";
+import { ACCESS_COOKIE } from "./auth.constants";
 
 type JwtPayload = {
   sub: string;
@@ -14,7 +16,10 @@ type JwtPayload = {
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor() {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        JwtStrategy.extractFromCookie,
+        ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ]),
       ignoreExpiration: false,
       secretOrKey: process.env.JWT_SECRET || "change-me",
     });
@@ -28,5 +33,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       vendorId: payload.vendorId,
       name: payload.name,
     };
+  }
+
+  private static extractFromCookie(req: Request): string | null {
+    return req?.cookies?.[ACCESS_COOKIE] ?? null;
   }
 }

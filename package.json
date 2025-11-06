@@ -8,6 +8,7 @@
     "start:dev": "nest start --watch",
     "prisma:dev": "prisma migrate dev",
     "prisma:generate": "prisma generate",
+    "prisma:studio": "prisma studio --port 5555",
     "db:seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {

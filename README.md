@@ -66,7 +66,7 @@ docker compose up -d
 
 - Postgres: `localhost:5432` (`postgres` / `postgres`)
 - MinIO: `http://localhost:9001` (`minioadmin` / `minioadmin`)
-- Crea el bucket `tally-uploads` la primera vez.
+- Crea el bucket `coi-uploads` la primera vez.
 
 ### 2. API NestJS
 
