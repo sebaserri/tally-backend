@@ -53,6 +53,15 @@ export class VendorsController {
     return this.svc.create(body);
   }
 
+  @Get("search")
+  @Roles("ADMIN", "GUARD")
+  @ApiOperation({ summary: "Buscar vendors (autocomplete Portería)" })
+  @ApiQuery({ name: "q", required: true, example: "Acme" })
+  @ApiResponse({ status: 200, type: [VendorSearchItem] })
+  search(@Query("q") q: string) {
+    return this.svc.search(q);
+  }
+
   @Get(":id")
   @Roles("ADMIN", "VENDOR")
   @ApiOperation({ summary: "Obtener vendor por id" })
@@ -69,14 +78,5 @@ export class VendorsController {
   @ApiResponse({ status: 200, type: VendorDto })
   setPhone(@Param("id") id: string, @Body() body: { contactPhone: string }) {
     return this.svc.setPhone(id, body.contactPhone);
-  }
-
-  @Get("search")
-  @Roles("ADMIN", "GUARD")
-  @ApiOperation({ summary: "Buscar vendors (autocomplete Portería)" })
-  @ApiQuery({ name: "q", required: true, example: "Acme" })
-  @ApiResponse({ status: 200, type: [VendorSearchItem] })
-  search(@Query("q") q: string) {
-    return this.svc.search(q);
   }
 }

@@ -16,7 +16,7 @@ import {
   ApiOperation,
   ApiParam,
   ApiQuery,
-  ApiTags
+  ApiTags,
 } from "@nestjs/swagger";
 import * as archiver from "archiver";
 import { Response } from "express";
@@ -73,6 +73,56 @@ export class CoisController {
     return this.svc.create(body);
   }
 
+  @Get("export")
+  @Roles("ADMIN")
+  @ApiOperation({ summary: "Exportar COIs a CSV" })
+  @ApiQuery({ name: "buildingId", required: false })
+  @ApiQuery({
+    name: "status",
+    required: false,
+    enum: ["PENDING", "APPROVED", "REJECTED"],
+  })
+  async exportCsv(@Res() res: Response, @Query() q: any) {
+    const items = await this.svc.list(q);
+    const fields = [
+      "id",
+      "vendorId",
+      "buildingId",
+      "insuredName",
+      "status",
+      "effectiveDate",
+      "expirationDate",
+      "additionalInsured",
+      "waiverOfSubrogation",
+    ];
+    const rows = [fields.join(",")];
+    for (const it of items) {
+      const r = [
+        it.id,
+        it.vendorId,
+        it.buildingId,
+        JSON.stringify(it.insuredName || ""),
+        it.status,
+        it.effectiveDate?.toISOString?.() || "",
+        it.expirationDate?.toISOString?.() || "",
+        it.additionalInsured ? "true" : "false",
+        it.waiverOfSubrogation ? "true" : "false",
+      ];
+      rows.push(
+        r
+          .map((x) => (typeof x === "string" ? x.replace(/\n/g, " ") : x))
+          .join(",")
+      );
+    }
+    const csv = rows.join("\n");
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="cois-export.csv"'
+    );
+    res.send(csv);
+  }
+
   @Get(":id")
   @Roles("ADMIN", "VENDOR")
   @ApiOperation({ summary: "Obtener COI por id" })
@@ -126,56 +176,6 @@ export class CoisController {
       { status: "REJECTED", notes: body?.notes, flags: body?.flags },
       user.id
     );
-  }
-
-  @Get("export")
-  @Roles("ADMIN")
-  @ApiOperation({ summary: "Exportar COIs a CSV" })
-  @ApiQuery({ name: "buildingId", required: false })
-  @ApiQuery({
-    name: "status",
-    required: false,
-    enum: ["PENDING", "APPROVED", "REJECTED"],
-  })
-  async exportCsv(@Res() res: Response, @Query() q: any) {
-    const items = await this.svc.list(q);
-    const fields = [
-      "id",
-      "vendorId",
-      "buildingId",
-      "insuredName",
-      "status",
-      "effectiveDate",
-      "expirationDate",
-      "additionalInsured",
-      "waiverOfSubrogation",
-    ];
-    const rows = [fields.join(",")];
-    for (const it of items) {
-      const r = [
-        it.id,
-        it.vendorId,
-        it.buildingId,
-        JSON.stringify(it.insuredName || ""),
-        it.status,
-        it.effectiveDate?.toISOString?.() || "",
-        it.expirationDate?.toISOString?.() || "",
-        it.additionalInsured ? "true" : "false",
-        it.waiverOfSubrogation ? "true" : "false",
-      ];
-      rows.push(
-        r
-          .map((x) => (typeof x === "string" ? x.replace(/\n/g, " ") : x))
-          .join(",")
-      );
-    }
-    const csv = rows.join("\n");
-    res.setHeader("Content-Type", "text/csv");
-    res.setHeader(
-      "Content-Disposition",
-      'attachment; filename="cois-export.csv"'
-    );
-    res.send(csv);
   }
 
   @Get(":id/files.zip")
