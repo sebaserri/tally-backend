@@ -51,7 +51,7 @@ async function bootstrap() {
   await prismaService.enableShutdownHooks(app);
 
   const config = new DocumentBuilder()
-    .setTitle("Tally MVP API")
+    .setTitle("proofholder MVP API")
     .setDescription("API para gestión de COIs (ACORD 25)")
     .setVersion("0.1.0")
     .addBearerAuth()

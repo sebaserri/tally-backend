@@ -2,7 +2,7 @@ export const tplCoiRequestLink = (vendorName: string, token: string) => `
   <div style="font-family:sans-serif">
     <h2>Solicitud de COI</h2>
     <p>Hola ${vendorName}, por favor sube tu COI en el siguiente enlace:</p>
-    <p><a href="${process.env.PUBLIC_APP_URL}/tally/requests/${token}" target="_blank">Completar COI</a></p>
+    <p><a href="${process.env.PUBLIC_APP_URL}/proofholder/requests/${token}" target="_blank">Completar COI</a></p>
     <p>Gracias.</p>
   </div>`;
 

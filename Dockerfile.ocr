@@ -1,4 +1,4 @@
-# ---- Build & Production-ready Dockerfile for Tally API ----
+# ---- Build & Production-ready Dockerfile for proofholder API ----
 # Includes OCR tools: tesseract-ocr + poppler-utils
 
 ARG NODE_VERSION=20

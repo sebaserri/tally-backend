@@ -129,7 +129,7 @@ async function main() {
       files: {
         create: [
           {
-            url: "https://example-bucket.s3.amazonaws.com/uploads/sample-tally-v1.pdf",
+            url: "https://example-bucket.s3.amazonaws.com/uploads/sample-proofholder-v1.pdf",
             kind: FileKind.CERTIFICATE,
           },
         ],
@@ -289,7 +289,7 @@ async function main() {
         buildingId: b1.id,
         status: "RECEIVED",
         meta: {
-          subject: "tally for [V:" + v1.id + "][B:" + b1.id + "]",
+          subject: "proofholder for [V:" + v1.id + "][B:" + b1.id + "]",
           attachments: [{ url: coiPending.files[0].url, kind: "CERTIFICATE" }],
         } as any,
       },

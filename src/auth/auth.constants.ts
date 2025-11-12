@@ -1,6 +1,6 @@
-export const ACCESS_COOKIE = "tally_at";
-export const REFRESH_COOKIE = "tally_rt";
-export const CSRF_COOKIE = "tally_csrf";
+export const ACCESS_COOKIE = "proofholder_at";
+export const REFRESH_COOKIE = "proofholder_rt";
+export const CSRF_COOKIE = "proofholder_csrf";
 export const CSRF_HEADER = "x-csrf-token";
 
 export const ACCESS_TTL_MIN = Number(process.env.AUTH_ACCESS_TTL_MIN || 15);

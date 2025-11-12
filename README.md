@@ -1,4 +1,4 @@
-# Tally API — Guía de desarrollo y despliegue
+# proofholder API — Guía de desarrollo y despliegue
 
 API NestJS para gestionar certificados de seguro (COI), con OCR opcional y notificaciones vía SMS/email.
 
@@ -26,8 +26,8 @@ npm run start:dev               # http://localhost:4000
 - `Dockerfile.ocr` → imagen con `tesseract-ocr` + `poppler-utils` para procesar PDFs escaneados.
 
 ```bash
-docker build -f Dockerfile.slim -t tally-backend:slim .
-docker build -f Dockerfile.ocr  -t tally-backend:ocr  .
+docker build -f Dockerfile.slim -t proofholder-backend:slim .
+docker build -f Dockerfile.ocr  -t proofholder-backend:ocr  .
 ```
 
 ### Despliegue (compose prod)
@@ -38,7 +38,7 @@ docker compose -f docker-compose.prod.yml build
 
 # Migraciones
 docker run --rm --env-file .env.prod \
-  -v "$(pwd)":/app -w /app yourorg/tally-api:prod \
+  -v "$(pwd)":/app -w /app yourorg/proofholder-api:prod \
   sh -lc "npx prisma migrate deploy"
 
 # API
@@ -146,7 +146,7 @@ TOKEN=$(curl -sX POST http://localhost:4000/auth/login \
   -d '{"email":"admin@example.com","password":"password123"}' \
   | jq -r .access_token)
 
-curl -sX POST http://localhost:4000/tally/requests \
+curl -sX POST http://localhost:4000/proofholder/requests \
  -H "Authorization: Bearer $TOKEN" \
  -H 'Content-Type: application/json' \
  -d '{"buildingId":"<BID>","vendorId":"<VID>","ttlHours":168}'
