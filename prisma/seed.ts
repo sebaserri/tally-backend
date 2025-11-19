@@ -436,7 +436,7 @@ async function main() {
     },
   });
 
-  await prisma.tenant.create({
+  const tenant1 = await prisma.tenant.create({
     data: {
       userId: tenantUser1.id,
       businessName: "Sunset Coffee Shop",
@@ -463,7 +463,7 @@ async function main() {
     },
   });
 
-  await prisma.tenant.create({
+  const tenant2 = await prisma.tenant.create({
     data: {
       userId: tenantUser2.id,
       businessName: "FitLife Gym",
@@ -775,7 +775,73 @@ async function main() {
     },
   });
 
-  console.log(`✅ Created 5 COIs\n`);
+  // COI 6: APPROVED para Tenant 1 (Sunset Coffee Shop)
+  const tenantCoi1 = await prisma.cOI.create({
+    data: {
+      tenantId: tenant1.id,
+      buildingId: building1.id,
+      status: COIStatus.APPROVED,
+
+      insuranceCompany: "Tenant Insurance Co",
+      policyNumber: "TEN-COI-1001",
+      effectiveDate: daysFromNow(-45),
+      expirationDate: daysFromNow(180),
+      coverageType: ["general_liability", "workers_comp"],
+      coverageAmounts: {
+        insuredName: "Sunset Coffee Shop",
+        generalLiabLimit: 1000000,
+        workersComp: true,
+      } as any,
+
+      additionalInsured: true,
+      waiverSubrogation: true,
+
+      files: {
+        create: [
+          {
+            fileName: "tenant1-building1-coi.pdf",
+            fileUrl: "https://s3.example.com/cois/tenant1-building1.pdf",
+            fileSize: 145678,
+            mimeType: "application/pdf",
+          },
+        ],
+      },
+    },
+  });
+
+  // COI 7: PENDING para Tenant 2 (FitLife Gym)
+  const tenantCoi2 = await prisma.cOI.create({
+    data: {
+      tenantId: tenant2.id,
+      buildingId: building2.id,
+      status: COIStatus.PENDING,
+
+      insuranceCompany: "ActiveLife Insurance",
+      policyNumber: "TEN-COI-2001",
+      effectiveDate: daysFromNow(-10),
+      expirationDate: daysFromNow(60),
+      coverageType: ["general_liability"],
+      coverageAmounts: {
+        insuredName: "FitLife Gym",
+        generalLiabLimit: 2000000,
+      } as any,
+
+      additionalInsured: true,
+
+      files: {
+        create: [
+          {
+            fileName: "tenant2-building2-coi-pending.pdf",
+            fileUrl: "https://s3.example.com/cois/tenant2-building2-pending.pdf",
+            fileSize: 132001,
+            mimeType: "application/pdf",
+          },
+        ],
+      },
+    },
+  });
+
+  console.log(`✅ Created 7 COIs (vendors + tenants)\n`);
 
   // ========================================
   // 11. COI REQUESTS (tokens públicos)
@@ -875,6 +941,15 @@ async function main() {
         entityId: vendor1.id,
         action: "APPROVE",
         actorId: propertyManager.id,
+      },
+      {
+        entityType: "COI",
+        entityId: tenantCoi1.id,
+        action: "APPROVE",
+        actorId: propertyManager.id,
+        metadata: {
+          notes: "Tenant COI reviewed and approved",
+        },
       },
     ],
   });
@@ -988,7 +1063,9 @@ async function main() {
   console.log(`  - 4 Vendor Authorizations`);
   console.log(`  - 2 Tenants`);
   console.log(`  - 2 Guards`);
-  console.log(`  - 5 COIs (Approved, Pending, Rejected, Expired)`);
+  console.log(
+    `  - 7 COIs (vendors + tenants: Approved, Pending, Rejected, Expired)`
+  );
   console.log(`  - 3 COI Requests`);
   console.log(`  - 3 Access Logs`);
   console.log(`  - Audit Logs, Notifications, Broker Inbox, Integrations\n`);

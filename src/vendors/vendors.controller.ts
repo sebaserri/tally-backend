@@ -44,7 +44,7 @@ import {
   VendorFilterDto,
   VendorSearchItem,
   VendorStatsDto,
-  VendorWithAuthorizationDto
+  VendorWithAuthorizationDto,
 } from "./dto";
 import { VendorsService } from "./vendors.service";
 
@@ -142,7 +142,7 @@ export class VendorsController {
   /**
    * Obtener autorizaciones del vendor
    */
-  @Get("authorizations")
+  @Get("me/authorizations")
   @ApiOperation({ summary: "Obtener autorizaciones del vendor" })
   @ApiParam({ name: "id", description: "ID del vendor" })
   @ApiResponse({ status: 200, type: [VendorAuthorizationDto] })
@@ -173,6 +173,155 @@ export class VendorsController {
     throw new ForbiddenException(
       "No tiene permiso para ver autorizaciones del vendor"
     );
+  }
+
+  /**
+   * Obtener mi perfil como vendor
+   */
+  @Get("me/profile")
+  @Roles(UserRole.VENDOR)
+  @ApiOperation({ summary: "Obtener mi perfil de vendor" })
+  @ApiResponse({ status: 200, type: VendorDto })
+  async getMyProfile(@CurrentUser() user: User) {
+    const vendor = await this.svc.findByUserId(user.id);
+
+    if (!vendor) {
+      throw new NotFoundException("Perfil de vendor no encontrado");
+    }
+
+    return vendor;
+  }
+
+  /**
+   * Obtener mis COIs como vendor
+   */
+  @Get("me/cois")
+  @Roles(UserRole.VENDOR)
+  @ApiOperation({ summary: "Obtener mis COIs" })
+  @ApiResponse({ status: 200, description: "Lista de COIs" })
+  async getMyCOIs(@CurrentUser() user: User) {
+    const vendor = await this.svc.findByUserId(user.id);
+
+    if (!vendor) {
+      // Si el usuario aún no tiene perfil de vendor, devolver lista vacía
+      return [];
+    }
+
+    return this.coisService.findByVendor(vendor.id);
+  }
+
+  /**
+   * Invitar vendor a la plataforma
+   */
+  @Post("invite")
+  @Roles(
+    UserRole.ACCOUNT_OWNER,
+    UserRole.PORTFOLIO_MANAGER,
+    UserRole.PROPERTY_MANAGER
+  )
+  @ApiOperation({ summary: "Invitar vendor" })
+  @ApiResponse({ status: 201, description: "Invitación enviada" })
+  async inviteVendor(@CurrentUser() user: User, @Body() dto: InviteVendorDto) {
+    // Verificar acceso a los edificios
+    if (dto.buildingIds && dto.buildingIds.length > 0) {
+      for (const buildingId of dto.buildingIds) {
+        const hasAccess = await this.permissions.canViewBuilding(
+          user,
+          buildingId
+        );
+        if (!hasAccess) {
+          throw new ForbiddenException(
+            `No tiene acceso al edificio ${buildingId}`
+          );
+        }
+      }
+    }
+
+    // TODO: Implementar lógica de invitación
+    // - Crear usuario con rol VENDOR
+    // - Enviar email de invitación
+    // - Pre-aprobar para edificios especificados
+
+    return { message: "Invitación enviada" };
+  }
+
+  /**
+   * Subir COI como vendor
+   */
+  @Post("upload-coi")
+  @Roles(UserRole.VENDOR)
+  @UseInterceptors(FileInterceptor("file"))
+  @ApiOperation({ summary: "Subir COI como vendor" })
+  @ApiConsumes("multipart/form-data")
+  @ApiResponse({ status: 201, description: "COI creado" })
+  async uploadCOI(
+    @CurrentUser() user: User,
+    @Body() dto: UploadCOIDto,
+    @UploadedFile() file: Express.Multer.File
+  ) {
+    // Obtener vendor del usuario
+    const vendor = await this.svc.findByUserId(user.id);
+
+    if (!vendor) {
+      throw new NotFoundException("Perfil de vendor no encontrado");
+    }
+
+    // Verificar si está autorizado para el edificio
+    const isAuthorized = await this.svc.isAuthorizedForBuilding(
+      vendor.id,
+      dto.buildingId
+    );
+
+    if (!isAuthorized) {
+      throw new ForbiddenException("No está autorizado para este edificio");
+    }
+
+    return this.coisService.create({
+      vendorId: vendor.id,
+      ...dto,
+    } as any);
+  }
+
+  /**
+   * Aprobar múltiples vendors
+   */
+  @Post("bulk/approve")
+  @Roles(
+    UserRole.ACCOUNT_OWNER,
+    UserRole.PORTFOLIO_MANAGER,
+    UserRole.PROPERTY_MANAGER
+  )
+  @ApiOperation({ summary: "Aprobar múltiples vendors" })
+  @ApiResponse({ status: 200, description: "Vendors aprobados" })
+  async bulkApprove(
+    @CurrentUser() user: User,
+    @Body() dto: BulkApproveVendorsDto
+  ) {
+    // Verificar acceso al edificio
+    const hasAccess = await this.permissions.canViewBuilding(
+      user,
+      dto.buildingId
+    );
+
+    if (!hasAccess) {
+      throw new ForbiddenException("No tiene acceso a este edificio");
+    }
+
+    const results: any[] = [];
+    for (const vendorId of dto.vendorIds) {
+      try {
+        const result = await this.svc.approveForBuilding(
+          vendorId,
+          dto.buildingId,
+          user.id
+        );
+        results.push({ vendorId, success: true, result });
+      } catch (error) {
+        results.push({ vendorId, success: false, error: error.message });
+      }
+    }
+
+    return results;
   }
 
   /**
@@ -356,43 +505,6 @@ export class VendorsController {
   }
 
   /**
-   * Subir COI como vendor
-   */
-  @Post("upload-coi")
-  @Roles(UserRole.VENDOR)
-  @UseInterceptors(FileInterceptor("file"))
-  @ApiOperation({ summary: "Subir COI como vendor" })
-  @ApiConsumes("multipart/form-data")
-  @ApiResponse({ status: 201, description: "COI creado" })
-  async uploadCOI(
-    @CurrentUser() user: User,
-    @Body() dto: UploadCOIDto,
-    @UploadedFile() file: Express.Multer.File
-  ) {
-    // Obtener vendor del usuario
-    const vendor = await this.svc.findByUserId(user.id);
-
-    if (!vendor) {
-      throw new NotFoundException("Perfil de vendor no encontrado");
-    }
-
-    // Verificar si está autorizado para el edificio
-    const isAuthorized = await this.svc.isAuthorizedForBuilding(
-      vendor.id,
-      dto.buildingId
-    );
-
-    if (!isAuthorized) {
-      throw new ForbiddenException("No está autorizado para este edificio");
-    }
-
-    return this.coisService.create({
-      vendorId: vendor.id,
-      ...dto,
-    } as any);
-  }
-
-  /**
    * Obtener COIs del vendor
    */
   @Get(":id/cois")
@@ -456,83 +568,6 @@ export class VendorsController {
   }
 
   /**
-   * Invitar vendor a la plataforma
-   */
-  @Post("invite")
-  @Roles(
-    UserRole.ACCOUNT_OWNER,
-    UserRole.PORTFOLIO_MANAGER,
-    UserRole.PROPERTY_MANAGER
-  )
-  @ApiOperation({ summary: "Invitar vendor" })
-  @ApiResponse({ status: 201, description: "Invitación enviada" })
-  async inviteVendor(@CurrentUser() user: User, @Body() dto: InviteVendorDto) {
-    // Verificar acceso a los edificios
-    if (dto.buildingIds && dto.buildingIds.length > 0) {
-      for (const buildingId of dto.buildingIds) {
-        const hasAccess = await this.permissions.canViewBuilding(
-          user,
-          buildingId
-        );
-        if (!hasAccess) {
-          throw new ForbiddenException(
-            `No tiene acceso al edificio ${buildingId}`
-          );
-        }
-      }
-    }
-
-    // TODO: Implementar lógica de invitación
-    // - Crear usuario con rol VENDOR
-    // - Enviar email de invitación
-    // - Pre-aprobar para edificios especificados
-
-    return { message: "Invitación enviada" };
-  }
-
-  /**
-   * Aprobar múltiples vendors
-   */
-  @Post("bulk/approve")
-  @Roles(
-    UserRole.ACCOUNT_OWNER,
-    UserRole.PORTFOLIO_MANAGER,
-    UserRole.PROPERTY_MANAGER
-  )
-  @ApiOperation({ summary: "Aprobar múltiples vendors" })
-  @ApiResponse({ status: 200, description: "Vendors aprobados" })
-  async bulkApprove(
-    @CurrentUser() user: User,
-    @Body() dto: BulkApproveVendorsDto
-  ) {
-    // Verificar acceso al edificio
-    const hasAccess = await this.permissions.canViewBuilding(
-      user,
-      dto.buildingId
-    );
-
-    if (!hasAccess) {
-      throw new ForbiddenException("No tiene acceso a este edificio");
-    }
-
-    const results: any[] = [];
-    for (const vendorId of dto.vendorIds) {
-      try {
-        const result = await this.svc.approveForBuilding(
-          vendorId,
-          dto.buildingId,
-          user.id
-        );
-        results.push({ vendorId, success: true, result });
-      } catch (error) {
-        results.push({ vendorId, success: false, error: error.message });
-      }
-    }
-
-    return results;
-  }
-
-  /**
    * Enviar notificación a vendor
    */
   @Post(":id/notify")
@@ -561,58 +596,5 @@ export class VendorsController {
     // - Registrar en NotificationLog
 
     return { message: "Notificación enviada" };
-  }
-
-  /**
-   * Obtener mi perfil como vendor
-   */
-  @Get("me/profile")
-  @Roles(UserRole.VENDOR)
-  @ApiOperation({ summary: "Obtener mi perfil de vendor" })
-  @ApiResponse({ status: 200, type: VendorDto })
-  async getMyProfile(@CurrentUser() user: User) {
-    const vendor = await this.svc.findByUserId(user.id);
-
-    if (!vendor) {
-      throw new NotFoundException("Perfil de vendor no encontrado");
-    }
-
-    return vendor;
-  }
-
-  /**
-   * Obtener mis autorizaciones como vendor
-   */
-  @Get("me/authorizations")
-  @Roles(UserRole.VENDOR)
-  @ApiOperation({ summary: "Obtener mis autorizaciones" })
-  @ApiResponse({ status: 200, type: [VendorAuthorizationDto] })
-  async getMyAuthorizations(@CurrentUser() user: User) {
-    const vendor = await this.svc.findByUserId(user.id);
-
-    if (!vendor) {
-      // Si el usuario aún no tiene perfil de vendor, devolver lista vacía
-      return [];
-    }
-
-    return this.svc.getVendorAuthorizations(vendor.id);
-  }
-
-  /**
-   * Obtener mis COIs como vendor
-   */
-  @Get("me/cois")
-  @Roles(UserRole.VENDOR)
-  @ApiOperation({ summary: "Obtener mis COIs" })
-  @ApiResponse({ status: 200, description: "Lista de COIs" })
-  async getMyCOIs(@CurrentUser() user: User) {
-    const vendor = await this.svc.findByUserId(user.id);
-
-    if (!vendor) {
-      // Si el usuario aún no tiene perfil de vendor, devolver lista vacía
-      return [];
-    }
-
-    return this.coisService.findByVendor(vendor.id);
   }
 }
