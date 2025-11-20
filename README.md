@@ -633,3 +633,15 @@ Servicios de notificación; en el MVP, **SMS de prueba** y hooks para eventos de
 * **Notifications**: utilitarios de comunicación y hooks.
 * **Seguridad transversal**: antivirus, roles, JWT/CSRF, webhooks firmados.
 
+## Roles
+| Action | ACCOUNT_OWNER | PORTFOLIO_MANAGER | PROPERTY_MANAGER | BUILDING_OWNER | TENANT | VENDOR | GUARD |
+|--------|----|----|-------|----|----|----|----|
+| View Billing | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Manage Subscription | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Invite Portfolio Mgr | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Invite Property Mgr | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Create Buildings | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Approve Vendors | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Manage COIs | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Upload Own COI | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ |
+| Check Access | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ |
